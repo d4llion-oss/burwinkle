@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Anonymous workplace gossip. Call out your coworkers, upvote the best burns, and see which companies are the most Burwinkled.">
+<meta name="theme-color" content="#17140F">
+<title>Burwinkle</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Instrument+Serif:ital@1&display=swap">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- FEED -->
+  <section class="view" id="view-feed">
+    <div class="header">
+      <div class="brand">
+        <div class="brand-name">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 12.5C7 9 9 8 9 5c1.5 1 2 2.5 2 4 1-1.5 1-4.5 1-7z" fill="var(--accent)"/><path d="M12 22a3.5 3.5 0 0 1-3.5-3.5c0-2.2 2-3 2-5.5 1.2.8 1.5 2 1.5 3 .8-.7 1-2 1-3 1.5 1.6 2.5 3.2 2.5 5.5A3.5 3.5 0 0 1 12 22z" fill="var(--gold)"/></svg>
+          Burwinkle
+        </div>
+        <button class="iconbtn" id="btn-search" aria-label="Search stories" aria-pressed="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        </button>
+      </div>
+      <div class="motto">Don't Get Yourself Burwinkled.</div>
+    </div>
+    <div class="field" id="search-wrap" hidden>
+      <div class="input">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search companies, names, stories" aria-label="Search stories" autocomplete="off">
+      </div>
+    </div>
+    <div class="chips" role="group" aria-label="Sort">
+      <button class="chip" data-sort="hot" aria-pressed="true">Hot</button>
+      <button class="chip" data-sort="new" aria-pressed="false">New</button>
+      <button class="chip" data-sort="week" aria-pressed="false">This week</button>
+      <button class="chip" id="co-filter" hidden aria-pressed="true"><span id="co-filter-name"></span><span class="x" aria-hidden="true">✕</span></button>
+    </div>
+    <div id="banner" class="banner" hidden></div>
+    <div class="list" id="feed"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    <div class="footer-links"><a href="/terms">Terms &amp; Takedowns</a><a href="/terms#takedown">Report abuse</a></div>
+  </section>
+
+  <!-- HOF -->
+  <section class="view" id="view-hof" hidden>
+    <div class="header">
+      <div class="eyebrow" style="color:var(--gold);display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/></svg>All-time
+      </div>
+      <h1 class="display" style="margin:0;font-size:30px">Burwinkle HOF</h1>
+      <div class="sub">The burns that live forever.</div>
+    </div>
+    <div class="list" id="hof"></div>
+  </section>
+
+  <!-- COMPANIES -->
+  <section class="view" id="view-companies" hidden>
+    <div class="header">
+      <div class="eyebrow" style="color:var(--accent);display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 12.5C7 9 9 8 9 5c1.5 1 2 2.5 2 4 1-1.5 1-4.5 1-7z" fill="currentColor"/></svg>Leaderboard
+      </div>
+      <h1 class="display" style="margin:0;font-size:30px">Most Burwinkled</h1>
+      <div class="sub" id="co-sub">Ranked by Burn Score this month.</div>
+    </div>
+    <div class="chips" role="group" aria-label="Period">
+      <button class="chip" data-period="month" aria-pressed="true">This month</button>
+      <button class="chip" data-period="all" aria-pressed="false">All-time</button>
+    </div>
+    <div class="list" id="companies"></div>
+  </section>
+
+  <!-- TELL -->
+  <section class="view" id="view-tell" hidden>
+    <div class="header">
+      <div class="brand">
+        <button class="iconbtn" id="btn-close-tell" aria-label="Back to feed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px">Tell a story</span>
+        <span style="width:44px"></span>
+      </div>
+      <h1 class="display" style="margin:8px 0 0;font-size:28px">Who got you Burwinkled?</h1>
+      <div class="sub">Always anonymous. First names or roles only.</div>
+    </div>
+    <form class="form" id="tell-form" novalidate>
+      <div class="field">
+        <label for="f-company">Company</label>
+        <div class="input">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h2M13 10h2M9 14h2M13 14h2"/></svg>
+          <input id="f-company" name="company" type="text" placeholder="Where it happened" maxlength="60" autocomplete="off" list="company-list" required>
+        </div>
+        <datalist id="company-list"></datalist>
+      </div>
+      <div class="field">
+        <label for="f-who">Who did it?</label>
+        <div class="input">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          <input id="f-who" name="who" type="text" placeholder="Greg in Ops" maxlength="40" autocomplete="off" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-title">The one-liner</label>
+        <div class="input">
+          <input id="f-title" name="title" type="text" placeholder="Booked a &quot;quick sync&quot; at 4:55 on a Friday." maxlength="120" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-body">The story</label>
+        <div class="input area">
+          <textarea id="f-body" name="body" placeholder="Set the scene. Keep it true, keep it funny, keep it about work." maxlength="500"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="count" id="body-count">0 / 500</span>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div style="flex:1"><b>Posted anonymously</b><span>Your name is never shown. No last names, no contact details.</span></div>
+      </div>
+      <div class="err" id="tell-err" hidden></div>
+      <button class="btn big" type="submit" id="btn-submit">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 12.5C7 9 9 8 9 5c1.5 1 2 2.5 2 4 1-1.5 1-4.5 1-7z" fill="currentColor"/></svg>Burwinkle them
+      </button>
+      <div class="fine">Stories that name last names, share contact details, or target someone outside work get removed. By posting you agree to the <a href="/terms">house rules</a>.</div>
+    </form>
+  </section>
+
+  <!-- ME -->
+  <section class="view" id="view-me" hidden>
+    <div class="header">
+      <div class="eyebrow" style="color:var(--muted)">Anonymous</div>
+      <h1 class="display" style="margin:0;font-size:30px">Your burns</h1>
+      <div class="sub">Only you can see this list.</div>
+    </div>
+    <div class="me-grid">
+      <div class="stat"><b id="me-stories">0</b><span>stories</span></div>
+      <div class="stat"><b id="me-votes">0</b><span>upvotes earned</span></div>
+      <div class="stat"><b id="me-given">0</b><span>upvotes given</span></div>
+    </div>
+    <h2 class="sec">Stories you told</h2>
+    <div class="list" id="me-list"></div>
+
+    <h2 class="sec" id="admin-head">Moderation</h2>
+    <div id="admin-locked">
+      <form class="form" id="admin-form" novalidate>
+        <div class="field">
+          <label for="f-admin">Admin token</label>
+          <div class="input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input id="f-admin" type="password" placeholder="Only the site owner has this" autocomplete="current-password">
+          </div>
+        </div>
+        <div class="err" id="admin-err" hidden></div>
+        <button class="btn quiet" type="submit">Unlock moderation</button>
+      </form>
+    </div>
+    <div id="admin-open" hidden>
+      <div class="note" style="margin-bottom:12px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div style="flex:1"><b>Moderation on</b><span>You can delete any story from the feed. Reported stories are listed below.</span></div>
+        <button class="pill ghost" id="btn-admin-logout" type="button">Lock</button>
+      </div>
+      <div class="list" id="reports"></div>
+    </div>
+    <div class="footer-links"><a href="/terms">Terms &amp; Takedowns</a></div>
+  </section>
+
+</div>
+
+<nav class="nav" aria-label="Main">
+  <div class="nav-in">
+    <a href="#feed" data-nav="feed" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Feed
+    </a>
+    <a href="#hof" data-nav="hof">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/></svg>HOF
+    </a>
+    <a href="#tell" data-nav="tell" class="fab" aria-label="Tell a story">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </a>
+    <a href="#companies" data-nav="companies">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h2M13 10h2M9 14h2M13 14h2"/></svg>Companies
+    </a>
+    <a href="#me" data-nav="me">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me
+    </a>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
