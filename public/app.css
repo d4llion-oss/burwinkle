@@ -8,28 +8,6 @@
   --nav:#1E1A14; --danger:#FF7A7A;
   --shadow:0 8px 20px rgba(255,107,59,.35);
 }
-:root[data-theme="light"]{
-  color-scheme:light;
-  --bg:#F6F1E8; --surface:#FFFFFF; --surface-2:#F0E9DD; --line:#E6DDD0; --line-2:#D8CDBC;
-  --text:#1B1712; --text-2:#3E362D; --muted:#6E6558; --faint:#9A9083;
-  --accent:#E4522A; --accent-ink:#FFFFFF; --accent-soft:#FBE4DB; --accent-hover:#C9431F;
-  --gold:#A8700F; --gold-soft:#FBF1DB; --gold-line:#E8D3A0;
-  --silver:#7A7268; --bronze:#9A5F2E;
-  --nav:#FFFFFF; --danger:#C0392B;
-  --shadow:0 8px 20px rgba(228,82,42,.25);
-}
-@media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){
-    color-scheme:light;
-    --bg:#F6F1E8; --surface:#FFFFFF; --surface-2:#F0E9DD; --line:#E6DDD0; --line-2:#D8CDBC;
-    --text:#1B1712; --text-2:#3E362D; --muted:#6E6558; --faint:#9A9083;
-    --accent:#E4522A; --accent-ink:#FFFFFF; --accent-soft:#FBE4DB; --accent-hover:#C9431F;
-    --gold:#A8700F; --gold-soft:#FBF1DB; --gold-line:#E8D3A0;
-    --silver:#7A7268; --bronze:#9A5F2E;
-    --nav:#FFFFFF; --danger:#C0392B;
-    --shadow:0 8px 20px rgba(228,82,42,.25);
-  }
-}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -85,8 +63,6 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .badge{width:44px;height:44px;border-radius:22px;display:inline-flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#17140F;flex:none;background:var(--surface-2)}
 .badge.r1{background:var(--gold)} .badge.r2{background:var(--silver)} .badge.r3{background:var(--bronze)}
 .badge.rn{color:var(--muted);font-size:15px}
-:root[data-theme="light"] .badge.r1,:root[data-theme="light"] .badge.r2,:root[data-theme="light"] .badge.r3{color:#fff}
-@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .badge.r1,:root:not([data-theme="dark"]) .badge.r2,:root:not([data-theme="dark"]) .badge.r3{color:#fff}}
 .rank-co{display:flex;flex-direction:column;gap:2px;min-width:0}
 .rank-co .company{max-width:100%}
 .rank-score{display:flex;flex-direction:column;align-items:flex-end;flex:none}
