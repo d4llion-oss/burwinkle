@@ -1,0 +1,36 @@
+# Droplet deployment: the app + Caddy (automatic HTTPS via Let's Encrypt).
+# 1. Copy .env.example to .env and fill it in.
+# 2. docker compose up -d --build
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      DATA_DIR: /data
+    volumes:
+      - burwinkle-data:/data
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+volumes:
+  burwinkle-data:
+  caddy-data:
+  caddy-config:

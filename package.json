@@ -1,0 +1,20 @@
+{
+  "name": "burwinkle",
+  "version": "1.0.0",
+  "description": "Burwinkle — anonymous workplace gossip. Don't Get Yourself Burwinkled.",
+  "private": true,
+  "type": "module",
+  "main": "server/index.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "seed": "node server/seed.js",
+    "smoke": "node scripts/smoke.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}
