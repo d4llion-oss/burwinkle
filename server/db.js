@@ -56,8 +56,16 @@ async function openSqlite() {
 
 async function openPostgres(url) {
   const { default: pg } = await import('pg');
-  const ssl = /sslmode=require/.test(url) || process.env.PGSSL === '1' ? { rejectUnauthorized: false } : undefined;
-  const pool = new pg.Pool({ connectionString: url, ssl, max: 10 });
+  // Managed databases (DigitalOcean included) use TLS with a provider CA.
+  // Prefer verifying against that CA when it is supplied (DATABASE_CA_CERT,
+  // bindable in App Platform as ${db-name.CA_CERT}); otherwise accept the
+  // provider certificate without chain verification. The sslmode parameter is
+  // stripped from the URL so the explicit ssl config below always wins.
+  const wantsSsl = /sslmode=(require|verify-ca|verify-full|prefer)/.test(url) || process.env.PGSSL === '1';
+  const cleanUrl = url.replace(/([?&])sslmode=[^&]*&?/, (m, p) => (m.endsWith('&') ? p : '')).replace(/[?&]$/, '');
+  const ca = process.env.DATABASE_CA_CERT;
+  const ssl = wantsSsl ? (ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: false }) : undefined;
+  const pool = new pg.Pool({ connectionString: cleanUrl, ssl, max: 10 });
   const toPg = (sql) => { let i = 0; return sql.replace(/\?/g, () => `$${++i}`); };
   for (const s of SCHEMA) await pool.query(s);
   return {
