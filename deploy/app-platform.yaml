@@ -1,0 +1,41 @@
+# DigitalOcean App Platform spec.
+# Deploy with: doctl apps create --spec deploy/app-platform.yaml
+# (or paste into the App Platform UI: Create App > Edit App Spec).
+#
+# App Platform containers have no persistent disk, so this spec uses a
+# managed Postgres database instead of SQLite. The dev database below costs
+# ~$7/mo; upgrade it in the DO console when traffic grows.
+name: burwinkle
+region: nyc
+services:
+  - name: web
+    dockerfile_path: Dockerfile
+    source_dir: /
+    github:
+      repo: YOUR_GITHUB_USER/burwinkle   # <-- change to your repo
+      branch: main
+      deploy_on_push: true
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    health_check:
+      http_path: /api/health
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${burwinkle-db.DATABASE_URL}
+      - key: SESSION_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_WITH_openssl_rand_-base64_48
+      - key: ADMIN_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_WITH_openssl_rand_-base64_24
+databases:
+  - name: burwinkle-db
+    engine: PG
+    version: "16"
+    production: false

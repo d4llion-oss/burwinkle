@@ -1,0 +1,23 @@
+# Caddy reverse proxy. DOMAIN comes from .env (e.g. burwinkle.com).
+# Caddy obtains and renews the TLS certificate automatically as long as the
+# domain's DNS A/AAAA record points at this Droplet and ports 80/443 are open.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8080
+
+	header {
+		# Belt and braces: the app sets its own security headers too.
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+# If you have not pointed a domain yet, comment the block above out and use
+# this one to serve plain HTTP on the Droplet's IP (no HTTPS):
+# :80 {
+# 	reverse_proxy app:8080
+# }
