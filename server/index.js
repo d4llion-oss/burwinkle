@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDatabase } from './db.js';
+import { SHARE_IMAGE_BASE64 } from './share-image.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8080);
@@ -184,6 +185,40 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Not found.' }));
 // ---------- static front-end ----------
 app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: PROD ? '1h' : 0, etag: true }));
 app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'terms.html')));
+const shareImage = Buffer.from(SHARE_IMAGE_BASE64, 'base64');
+app.get('/share.png', (req, res) => { res.setHeader('Cache-Control', 'public, max-age=86400'); res.type('png').send(shareImage); });
+
+// Story permalink: same app shell, but with Open Graph / Twitter card tags for
+// that story so shares on Facebook, X, LinkedIn and messengers show a preview.
+const fs = await import('node:fs/promises');
+const indexHtml = await fs.readFile(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const siteUrl = (req) => (process.env.SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+app.get('/s/:id', async (req, res) => {
+  const s = await db.get('SELECT id, company, who, title, body FROM stories WHERE id = ?', [req.params.id]);
+  if (!s) return res.redirect(302, '/');
+  const url = `${siteUrl(req)}/s/${encodeURIComponent(s.id)}`;
+  const title = `${s.title} — ${s.who} at ${s.company}`;
+  const desc = s.body ? s.body.slice(0, 200) : "Don't Get Yourself Burwinkled.";
+  const tags = [
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:site_name" content="Burwinkle">`,
+    `<meta property="og:title" content="${escHtml(title)}">`,
+    `<meta property="og:description" content="${escHtml(desc)}">`,
+    `<meta property="og:url" content="${escHtml(url)}">`,
+    `<meta property="og:image" content="${escHtml(siteUrl(req))}/share.png">`,
+    `<meta name="twitter:card" content="summary">`,
+    `<meta name="twitter:title" content="${escHtml(title)}">`,
+    `<meta name="twitter:description" content="${escHtml(desc)}">`,
+    `<link rel="canonical" href="${escHtml(url)}">`,
+  ].join('\n');
+  const html = indexHtml
+    .replace('<title>Burwinkle</title>', `<title>${escHtml(s.title)} · Burwinkle</title>\n${tags}`)
+    .replace('<body>', `<body data-story="${escHtml(s.id)}">`);
+  res.setHeader('Cache-Control', 'no-cache');
+  res.type('html').send(html);
+});
+
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
 
 app.use((err, req, res, next) => {
