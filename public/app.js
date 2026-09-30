@@ -9,7 +9,7 @@
     me: null, isAdmin: false, moderation: false,
     stories: [],        // {id, company, who, title, body, createdAt, example, mine, votes, voted}
     sort: 'hot', period: 'month', query: '', companyFilter: null,
-    view: 'feed', ready: false, pendingDelete: null, offline: false, reports: [],
+    view: 'feed', ready: false, pendingDelete: null, offline: false, reports: [], shareOpen: null, focusId: null,
   };
 
   // ---------- helpers ----------
@@ -38,6 +38,36 @@
   const ICON_UP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
   const ICON_TRASH = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
   const ICON_FLAG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h12l-2 4 2 4H5"/></svg>';
+  const ICON_SHARE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M7 8l5-5 5 5"/></svg>';
+  const ICON_LINK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.5 1.5M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.5-1.5"/></svg>';
+
+  // ---------- sharing ----------
+  const storyUrl = (s) => location.origin + '/s/' + encodeURIComponent(s.id);
+  const shareText = (s) => `“${s.title}” — ${s.who} at ${s.company}. Don't Get Yourself Burwinkled.`;
+  function shareTargets(s) {
+    const u = encodeURIComponent(storyUrl(s)), t = encodeURIComponent(shareText(s));
+    return {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${u}`,
+      x: `https://twitter.com/intent/tweet?text=${t}&url=${u}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
+    };
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch (e) {
+      try { const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e2) { return false; }
+    }
+  }
+  function shareSheet(s) {
+    const t = shareTargets(s);
+    return `<div class="share-sheet" role="group" aria-label="Share this story">
+      <a class="share-btn" href="${t.facebook}" target="_blank" rel="noopener noreferrer"><span class="share-dot fb"></span>Facebook</a>
+      <a class="share-btn" href="${t.x}" target="_blank" rel="noopener noreferrer"><span class="share-dot x"></span>X</a>
+      <a class="share-btn" href="${t.linkedin}" target="_blank" rel="noopener noreferrer"><span class="share-dot li"></span>LinkedIn</a>
+      <button class="share-btn" type="button" data-share-ig="${esc(s.id)}"><span class="share-dot ig"></span>Instagram</button>
+      <button class="share-btn" type="button" data-share-copy="${esc(s.id)}">${ICON_LINK}Copy link</button>
+    </div>`;
+  }
 
   // ---------- rendering ----------
   function storyCard(s, opts = {}) {
@@ -53,6 +83,7 @@
       <div class="who">Starring <b>${esc(s.who)}</b></div>
       <div class="actions">
         <button class="pill ${s.voted ? 'on' : ''}" data-vote="${esc(s.id)}" aria-pressed="${s.voted}" aria-label="Upvote, ${s.votes}">${ICON_UP}${fmt(s.votes)}</button>
+        <button class="pill ghost ${state.shareOpen === s.id ? 'active' : ''}" data-share="${esc(s.id)}" aria-expanded="${state.shareOpen === s.id}" aria-label="Share story">${ICON_SHARE}Share</button>
         ${opts.trending ? '<span class="tag">Trending</span>' : ''}
         ${s.example ? '<span class="tag ex">Example</span>' : ''}
         <span class="spacer"></span>
@@ -61,6 +92,7 @@
           : `<button class="pill ghost" data-del="${esc(s.id)}" aria-label="Delete story">${ICON_TRASH}</button>`)
           : `<button class="pill ghost" data-report="${esc(s.id)}" aria-label="Report story">${ICON_FLAG}</button>`}
       </div>
+      ${state.shareOpen === s.id ? shareSheet(s) : ''}
     </article>`;
   }
 
@@ -77,7 +109,7 @@
   function renderFeed() {
     if (!state.ready) return;
     const el = $('#feed');
-    const list = filteredStories();
+    let list = filteredStories();
     const cf = $('#co-filter'); cf.hidden = !state.companyFilter;
     if (state.companyFilter) { const s = state.stories.find((x) => coKey(x.company) === state.companyFilter); $('#co-filter-name').textContent = s ? s.company : state.companyFilter; }
     if (!list.length) {
@@ -88,7 +120,15 @@
       return;
     }
     const top = state.sort === 'hot' && list.length > 2 ? list[0].id : null;
-    el.innerHTML = list.slice(0, 100).map((s) => storyCard(s, { trending: s.id === top && s.votes > 0 })).join('');
+    let html = '';
+    if (state.focusId) {
+      const f = state.stories.find((x) => x.id === state.focusId);
+      if (f) {
+        html += `<div class="section-row"><span>Shared story</span><button class="pill ghost" data-unfocus="1">Show all</button></div>` + storyCard(f) + `<div class="section-row"><span>More burns</span></div>`;
+        list = list.filter((x) => x.id !== f.id);
+      }
+    }
+    el.innerHTML = html + list.slice(0, 100).map((s) => storyCard(s, { trending: s.id === top && s.votes > 0 })).join('');
   }
 
   function renderHOF() {
@@ -266,10 +306,26 @@
     catch (e) { err.textContent = e.message; err.hidden = false; }
   }
 
+  async function shareInstagram(id) {
+    const s = state.stories.find((x) => x.id === id); if (!s) return;
+    // Instagram has no web share endpoint. On phones the system share sheet
+    // lists Instagram; elsewhere we copy the link for pasting into a post or story.
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Burwinkle', text: shareText(s), url: storyUrl(s) }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    const ok = await copyText(storyUrl(s));
+    toast(ok ? 'Link copied. Paste it into your Instagram post or story.' : 'Instagram needs the link pasted: ' + storyUrl(s));
+  }
+
   // ---------- wiring ----------
   document.addEventListener('click', (ev) => {
-    const t = ev.target.closest('[data-vote],[data-co],[data-del],[data-del-confirm],[data-del-cancel],[data-report],[data-sort],[data-period]');
-    if (!t) return;
+    const t = ev.target.closest('[data-vote],[data-co],[data-del],[data-del-confirm],[data-del-cancel],[data-report],[data-sort],[data-period],[data-share],[data-share-ig],[data-share-copy],[data-unfocus]');
+    if (!t) { if (state.shareOpen && !ev.target.closest('.share-sheet')) { state.shareOpen = null; renderAll(); } return; }
+    if (t.dataset.share) { state.shareOpen = state.shareOpen === t.dataset.share ? null : t.dataset.share; renderAll(); return; }
+    if (t.dataset.shareCopy) { const s = state.stories.find((x) => x.id === t.dataset.shareCopy); if (s) copyText(storyUrl(s)).then((ok) => toast(ok ? 'Link copied.' : "Couldn't copy. The link is " + storyUrl(s))); return; }
+    if (t.dataset.shareIg) { return shareInstagram(t.dataset.shareIg); }
+    if (t.dataset.unfocus) { state.focusId = null; history.replaceState(null, '', '/#feed'); renderFeed(); return; }
     if (t.dataset.vote) return toggleVote(t.dataset.vote);
     if (t.dataset.co !== undefined) { state.companyFilter = coKey(t.dataset.co); state.query = ''; $('#search').value = ''; location.hash = '#feed'; renderFeed(); return; }
     if (t.dataset.del) { state.pendingDelete = t.dataset.del; renderAll(); return; }
@@ -291,8 +347,10 @@
   const draft = store.get('bw-draft'); if (draft) { bodyEl.value = draft; $('#body-count').textContent = draft.length + ' / 500'; }
 
   // ---------- boot ----------
+  const shared = document.body.dataset.story || (location.pathname.startsWith('/s/') ? decodeURIComponent(location.pathname.slice(3)) : '');
+  if (shared) { state.focusId = shared; }
   show(location.hash.replace('#', '') || 'feed');
-  (async () => { await loadMe(); await loadStories(); })();
+  (async () => { await loadMe(); await loadStories(); if (state.focusId && !state.stories.some((x) => x.id === state.focusId)) { state.focusId = null; toast('That story is no longer on Burwinkle.'); renderFeed(); } })();
   setInterval(() => { if (document.visibilityState === 'visible' && state.view !== 'tell') loadStories(); }, 20000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadStories(); });
 })();
