@@ -131,3 +131,11 @@ img{max-width:100%}
 .mono{font-weight:600;color:var(--text)}
 .footer-links{display:flex;justify-content:center;gap:16px;padding:24px 0 8px;font-size:12px}
 .footer-links a{color:var(--muted);font-weight:500}
+/* share */
+.pill.active{border-color:var(--accent);color:var(--accent)}
+.share-sheet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line-2)}
+.share-btn{height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;text-decoration:none}
+.share-btn:hover{border-color:var(--accent)}
+.share-dot{width:10px;height:10px;border-radius:5px;flex:none}
+.share-dot.fb{background:#1877F2}.share-dot.x{background:#F5EFE6}.share-dot.li{background:#0A66C2}.share-dot.ig{background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)}
+@media (min-width:480px){.share-sheet{grid-template-columns:repeat(3,minmax(0,1fr))}}
